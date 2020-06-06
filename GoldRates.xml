@@ -1,1 +1,8 @@
-<Root></Root>
+<Root>
+  
+
+  <GoldRates Date="2020-06-06">
+    <GoldRate Carat="22"> 4,476</GoldRate>
+    <GoldRate Carat="24"> 4,884</GoldRate>
+  </GoldRates>
+</Root>

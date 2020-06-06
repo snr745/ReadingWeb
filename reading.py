@@ -3,15 +3,16 @@ from bs4 import BeautifulSoup as BS
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import os.path as OsPath
-from datetime import date
+from datetime import *
 from xml.dom import minidom
+import logging
 
-myFile=Path("C:\Learning\WebReading1\GoldRates.xml")
-#if OsPath.is
+logging.basicConfig(handlers=[logging.FileHandler('Applog.txt', 'w', 'utf-8')],level=logging.DEBUG)
 tree=""
 root1=""
 GoldrateElement=""
 carat_24_parsed=False
+GoldRates_Updated=True
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
@@ -24,32 +25,37 @@ def CreateorGetXmlFile():
     global root1
     global tree
     try:
-        tree=ET.parse("C:\Learning\WebReading1\GoldRates.xml")
-        print("try Block")
+        tree=ET.parse("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
         root1 = tree.getroot()
+        logging.info("Successfully Parsed the File"+"C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
     except FileNotFoundError:
         rt=ET.Element("Root")
         tree=ET.ElementTree(rt)
-        tree.write("C:\Learning\WebReading1\GoldRates.xml")
-        tree=ET.parse("C:\Learning\WebReading1\GoldRates.xml")
+        tree.write("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        tree=ET.parse("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
         root1=tree.getroot()
+        logging.info("Successfully Created the File"+"C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
 
 
 
 
 def Handle22Carat(table1):
     global GoldrateElement
+    global GoldRates_Updated
     row=table1.find("i")
-    print("22 Carat Value:"+row.parent.text)
-    print(type(root1))
-    print(type(str(date.today())))
-    GoldrateElement=ET.SubElement(root1,'GoldRates')
-    GoldrateElement.set("Date",str(date.today()))
-    goldRate=ET.SubElement(GoldrateElement,"GoldRate")
-    goldRate.set("Carat","22")
-    goldRate.text=row.parent.text.replace("₹","")
-    #GoldrateElement.append(goldrate)
-    #root1.append(GoldrateElement)
+    logging.info("22 Carat Value:"+row.parent.text)
+    today_Date=str(date.today())
+    xpath1=".//*[@Date='"+today_Date+"']"
+    existingGoldrates=root1.findall(xpath1)
+    if not existingGoldrates:
+        GoldRates_Updated=False
+        GoldrateElement=ET.SubElement(root1,'GoldRates')
+        GoldrateElement.set("Date",str(date.today()))
+        goldRate=ET.SubElement(GoldrateElement,"GoldRate")
+        goldRate.set("Carat","22")
+        goldRate.text=row.parent.text.replace("₹","")
+
+    
 
 
 
@@ -57,31 +63,41 @@ def Handle24Carat(table1):
     global carat_24_parsed
     row=table1.find("i")
     carat_24_parsed= not carat_24_parsed
-    print("24 Carat Value:"+row.parent.text)
-    goldRate=ET.SubElement(GoldrateElement,"GoldRate")
-    goldRate.set("Carat","24")
-    goldRate.text=row.parent.text.replace("₹","")
-    #tree.toprettyxml()
-    tree=ET.ElementTree(ET.fromstring(prettify(root1)))
-    print(str(prettify(root1)))
-    tree.write("C:\Learning\WebReading1\GoldRates.xml")
-   
+    logging.info("24 Carat Value:"+row.parent.text)
+    if not GoldRates_Updated:
+        goldRate=ET.SubElement(GoldrateElement,"GoldRate")
+        goldRate.set("Carat","24")
+        goldRate.text=row.parent.text.replace("₹","")
+        tree=ET.ElementTree(ET.fromstring(prettify(root1)))
+        tree.write("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        logging.info("Successfully Written Xml File")
+
+    
+def loadUrl():
+    link = "https://www.goodreturns.in/gold-rates/chennai.html"
+    f = urlopen(link)
+    myfile = f.read()
+    with open("C:\Learning\TestReading\ReadingWeb\logFile.txt","w+") as text_file:
+        print(myfile,file=text_file)
+    return myfile
+
+def ParseFileContents(myfile):
+    soup =BS(myfile,'html.parser')
+    table=soup.find("div",class_ = "gold_silver_table")
+    for div in soup.find_all("div",class_ = "gold_silver_table"):
+        table=div.find("table").text
+        if "22 Carat Gold" in table:
+            Handle22Carat(div.find("table"))
+        else:
+            if  carat_24_parsed == False:
+                Handle24Carat(div.find("table"))
+            
+def main():
+    logging.info("Apllication Starting At:::::"+str(datetime.now()))
+    fileData= loadUrl()
+    CreateorGetXmlFile()
+    ParseFileContents(fileData)
 
 
-link = "https://www.goodreturns.in/gold-rates/chennai.html"
-f = urlopen(link)
-myfile = f.read()
-with open("C:\Learning\WebReading1\log.txt","w+") as text_file:
-    print(myfile,file=text_file)
-CreateorGetXmlFile()
-soup =BS(myfile,'html.parser')
-table=soup.find("div",class_ = "gold_silver_table")
-for div in soup.find_all("div",class_ = "gold_silver_table"):
-    table=div.find("table").text
-    if "22 Carat Gold" in table:
-        Handle22Carat(div.find("table"))
-    else:
-        if  carat_24_parsed == False:
-            Handle24Carat(div.find("table"))
-        print("yes 24")
-tree.write("C:\Learning\WebReading1\GoldRates.xml")
+if __name__ == "__main__":
+    main()
