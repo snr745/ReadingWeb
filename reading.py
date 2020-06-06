@@ -25,16 +25,16 @@ def CreateorGetXmlFile():
     global root1
     global tree
     try:
-        tree=ET.parse("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        tree=ET.parse("GoldRates.xml")
         root1 = tree.getroot()
-        logging.info("Successfully Parsed the File"+"C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        logging.info("Successfully Parsed the File"+"GoldRates.xml")
     except FileNotFoundError:
         rt=ET.Element("Root")
         tree=ET.ElementTree(rt)
-        tree.write("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
-        tree=ET.parse("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        tree.write("GoldRates.xml")
+        tree=ET.parse("GoldRates.xml")
         root1=tree.getroot()
-        logging.info("Successfully Created the File"+"C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        logging.info("Successfully Created the File"+"GoldRates.xml")
 
 
 
@@ -69,7 +69,7 @@ def Handle24Carat(table1):
         goldRate.set("Carat","24")
         goldRate.text=row.parent.text.replace("₹","")
         tree=ET.ElementTree(ET.fromstring(prettify(root1)))
-        tree.write("C:\Learning\TestReading\ReadingWeb\GoldRates.xml")
+        tree.write("GoldRates.xml")
         logging.info("Successfully Written Xml File")
 
     
@@ -77,7 +77,7 @@ def loadUrl():
     link = "https://www.goodreturns.in/gold-rates/chennai.html"
     f = urlopen(link)
     myfile = f.read()
-    with open("C:\Learning\TestReading\ReadingWeb\logFile.txt","w+") as text_file:
+    with open("logFile.txt","w+") as text_file:
         print(myfile,file=text_file)
     return myfile
 
